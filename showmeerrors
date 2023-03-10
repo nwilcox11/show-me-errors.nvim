@@ -1,0 +1,7 @@
+lowercase-global
+unused-local
+unused-local
+Unused local `another_test`.
+Unused local `test`.
+Global variable in lowercase initial, Did you miss `local` or misspell it?
+
