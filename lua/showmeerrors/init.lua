@@ -21,22 +21,43 @@ ShowErrors.show_me = function()
   vim.cmd("below new")
   vim.cmd("wincmd J")
   local diags_buf = vim.api.nvim_get_current_buf()
+  local diags_win = vim.api.nvim_get_current_win()
 
   -- Get and process diagnostics
   local diags = vim.diagnostic.get()
   local processed_diags = {}
   for _, value in ipairs(diags) do
     local filename = vim.api.nvim_buf_get_name(value.bufnr)
-    table.insert(processed_diags,
-      {
-        filename ..
-            "|" ..
-            (value.lnum + 1) ..
-            " " ..
-            diagnostic_type[value.severity] ..
-            "|" .. " " .. value.message .. " " .. "[" .. value.source .. " " .. value.code .. "]"
-      })
+
+    if processed_diags[filename] then
+      table.insert(processed_diags[filename],
+        {
+          file_name = filename,
+          diagnostic_line = {
+            "    |" ..
+                (value.lnum + 1) ..
+                " " ..
+                diagnostic_type[value.severity] ..
+                "|" .. " " .. value.message .. " " .. "[" .. value.source .. " " .. value.code .. "]"
+          }
+        })
+    else
+      processed_diags[filename] = {}
+      table.insert(processed_diags[filename],
+        {
+          file_name = filename,
+          diagnostic_line = {
+            "    |" ..
+                (value.lnum + 1) ..
+                " " ..
+                diagnostic_type[value.severity] ..
+                "|" .. " " .. value.message .. " " .. "[" .. value.source .. " " .. value.code .. "]"
+          }
+        })
+    end
   end
+
+  -- P(processed_diags)
 
   -- unlock buffer
   vim.api.nvim_buf_set_option(diags_buf, 'readonly', false)
@@ -45,14 +66,23 @@ ShowErrors.show_me = function()
   vim.api.nvim_buf_set_name(diags_buf, 'showmeerrors')
 
   -- Set buffer options
+  vim.cmd("setlocal nonu")
+  vim.cmd("setlocal nornu")
   vim.api.nvim_buf_set_option(diags_buf, 'bufhidden', "wipe")
   vim.api.nvim_buf_set_option(diags_buf, 'buftype', "nofile")
   vim.api.nvim_buf_set_option(diags_buf, 'swapfile', false)
   vim.api.nvim_buf_set_option(diags_buf, 'buflisted', false)
 
-  -- Write processed diagnostics to buffer
-  for i, lines in ipairs(processed_diags) do
-    vim.api.nvim_buf_set_lines(diags_buf, i, i, true, lines)
+  -- Set window options
+  vim.api.nvim_win_set_option(diags_win, 'winfixheight', true)
+  vim.api.nvim_win_set_option(diags_win, 'winfixwidth', true)
+  vim.api.nvim_win_set_height(diags_win, 10)
+
+  for filename, diagnostic in pairs(processed_diags) do
+    vim.api.nvim_buf_set_lines(diags_buf, 1, 1, true, { filename })
+    for i, renderable_diagnostic in ipairs(diagnostic) do
+      vim.api.nvim_buf_set_lines(diags_buf, i + 1, i + 1, true, renderable_diagnostic.diagnostic_line)
+    end
   end
 
   -- lock buffer
