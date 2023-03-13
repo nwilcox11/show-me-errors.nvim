@@ -1,3 +1,5 @@
+local utils = require("showmeerrors.utils")
+
 local ShowErrors = {}
 
 local diagnostic_type = {
@@ -57,8 +59,6 @@ ShowErrors.show_me = function()
     end
   end
 
-  -- P(processed_diags)
-
   -- unlock buffer
   vim.api.nvim_buf_set_option(diags_buf, 'readonly', false)
   vim.api.nvim_buf_set_option(diags_buf, 'modifiable', true)
@@ -79,7 +79,8 @@ ShowErrors.show_me = function()
   vim.api.nvim_win_set_height(diags_win, 10)
 
   for filename, diagnostic in pairs(processed_diags) do
-    vim.api.nvim_buf_set_lines(diags_buf, 1, 1, true, { filename })
+    local diags_count = utils.count(diagnostic)
+    vim.api.nvim_buf_set_lines(diags_buf, 1, 1, true, { filename .. " " .. diags_count })
     for i, renderable_diagnostic in ipairs(diagnostic) do
       vim.api.nvim_buf_set_lines(diags_buf, i + 1, i + 1, true, renderable_diagnostic.diagnostic_line)
     end
