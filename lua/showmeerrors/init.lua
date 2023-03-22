@@ -1,14 +1,10 @@
 -- TODO:
-
--- FEAT:
--- * Can we figure out how to get all diags from the root of the project?
--- * Refresh diags if changes occur and error window is open.
--- * Some type of severity sorting
-
--- CHORE:
--- * Tests?
--- * Refactor
--- * Some color
+--
+  -- TASKS:
+  -- * Add Tests
+  -- * Refactor
+  -- * Add refresh to error window when a diagnostic state changes.
+  -- * Add some color
 
 local utils = require("showmeerrors.utils")
 
@@ -66,6 +62,8 @@ ShowErrors.toggle = function()
   else
     ShowErrors.open()
   end
+
+  return view
 end
 
 ShowErrors.doaction = function(action_kind)
@@ -97,7 +95,6 @@ ShowErrors.open = function()
   vim.cmd("wincmd J")
 
   view = Diag_view:new()
-  P(view)
 
   -- Group diags by filename
   local diags = vim.diagnostic.get()
@@ -113,11 +110,11 @@ ShowErrors.open = function()
           file_name = filename,
           loc = { value.lnum + 1, value.col },
           diagnostic_line =
-          "    |" ..
+          "    | " ..
               (value.lnum + 1) ..
               " " ..
               diagnostic_type[value.severity] ..
-              "|" .. " " .. value.message .. " " .. "[" .. value.source .. " " .. value.code .. "]"
+              " |" .. " " .. value.message .. " " .. "[" .. value.source .. " " .. value.code .. "]"
 
         })
     else
@@ -128,11 +125,11 @@ ShowErrors.open = function()
           file_name = filename,
           loc = { value.lnum + 1, value.col },
           diagnostic_line =
-          "    |" ..
+          "    | " ..
               (value.lnum + 1) ..
               " " ..
               diagnostic_type[value.severity] ..
-              "|" .. " " .. value.message .. " " .. "[" .. value.source .. " " .. value.code .. "]"
+              " |" .. " " .. value.message .. " " .. "[" .. value.source .. " " .. value.code .. "]"
 
         })
     end
@@ -162,7 +159,7 @@ ShowErrors.open = function()
   -- Map diags into trackable format
   local lineNr = 1
   for filename, diagnostic in pairs(processed_diags) do
-    view.diags[lineNr] = { is_file = true, filename = filename, message = filename .. " " .. utils.count(diagnostic) }
+    view.diags[lineNr] = { is_file = true, filename = filename, message = filename .. " -- " .. utils.count(diagnostic) }
     lineNr = lineNr + 1
 
     for _, renderable_diagnostic in ipairs(diagnostic) do
