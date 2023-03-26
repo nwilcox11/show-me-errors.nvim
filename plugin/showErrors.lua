@@ -9,6 +9,6 @@ vim.api.nvim_create_user_command("ShowErrorsToggle", function()
 end, {})
 
 vim.api.nvim_create_user_command("ShowErrorsReset", function()
-  require('showmeerrors').reset()
+  require('showmeerrors.utils').reset()
 end, {})
 
